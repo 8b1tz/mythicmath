@@ -5,3 +5,4 @@ asyncpg
 alembic
 redis>=5.0
 python-dotenv
+aiosqlite

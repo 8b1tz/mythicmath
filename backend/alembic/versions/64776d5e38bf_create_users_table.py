@@ -21,6 +21,8 @@ def upgrade() -> None:
         "users",
         sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
         sa.Column("name", sa.String(length=255), nullable=False),
+        sa.Column("email", sa.String(length=255), nullable=False, unique=True),
+        sa.Column("password_hash", sa.String(length=255), nullable=False),
         sa.Column("photo_url", sa.String(length=2048), nullable=True),
         sa.Column("xp", sa.Integer(), nullable=False, server_default=sa.text("0")),
         sa.Column("level", sa.Integer(), nullable=False, server_default=sa.text("1")),
@@ -30,7 +32,7 @@ def upgrade() -> None:
             "created_at",
             sa.DateTime(timezone=True),
             nullable=False,
-            server_default=sa.text("now()"),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
     )
 

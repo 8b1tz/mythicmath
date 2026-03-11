@@ -21,3 +21,8 @@ coverage.xml
 .vscode/
 .idea/
 .DS_Store
+
+# local databases
+*.db
+*.sqlite
+*.sqlite3
