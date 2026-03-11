@@ -3,7 +3,7 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.repositories.user_repository import UserRepository
-from app.services.security import hash_password
+from app.services.security import hash_password, verify_password
 
 
 class UserService:
@@ -15,6 +15,9 @@ class UserService:
 
     async def get_user_by_email(self, session: AsyncSession, email: str):
         return await self.repository.get_by_email(session, email)
+
+    async def get_user_by_name(self, session: AsyncSession, name: str):
+        return await self.repository.get_by_name(session, name)
 
     async def create_user(
         self,
@@ -32,3 +35,6 @@ class UserService:
             password_hash=password_hash,
             photo_url=photo_url,
         )
+
+    def verify_password(self, password: str, password_hash: str) -> bool:
+        return verify_password(password, password_hash)

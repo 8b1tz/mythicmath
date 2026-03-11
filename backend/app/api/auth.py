@@ -2,7 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.engine.database import get_session
-from app.schemas.user import UserRegisterRequest, UserRegisterResponse
+from app.schemas.user import (
+    UserLoginRequest,
+    UserRegisterRequest,
+    UserRegisterResponse,
+)
 from app.services.user_service import UserService
 from app.services.session_service import create_session
 
@@ -29,6 +33,40 @@ async def register_user(
 
     token = await create_session(user_id=user.id, email=user.email)
 
+    return UserRegisterResponse(
+        id=user.id,
+        name=user.name,
+        email=user.email,
+        token=token,
+    )
+
+
+@router.post("/login", response_model=UserRegisterResponse)
+async def login_user(
+    payload: UserLoginRequest,
+    session: AsyncSession = Depends(get_session),
+):
+    email = payload.email.strip().lower() if payload.email else None
+    name = payload.name.strip() if payload.name else None
+
+    if not email and not name:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Email or name is required",
+        )
+
+    if email:
+        user = await user_service.get_user_by_email(session, email)
+    else:
+        user = await user_service.get_user_by_name(session, name)
+
+    if not user or not user_service.verify_password(payload.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+        )
+
+    token = await create_session(user_id=user.id, email=user.email)
     return UserRegisterResponse(
         id=user.id,
         name=user.name,

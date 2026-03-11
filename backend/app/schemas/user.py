@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -12,3 +14,9 @@ class UserRegisterResponse(BaseModel):
     name: str
     email: str
     token: str
+
+
+class UserLoginRequest(BaseModel):
+    email: Optional[str] = None
+    name: Optional[str] = None
+    password: str

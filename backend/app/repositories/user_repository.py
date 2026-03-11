@@ -17,6 +17,10 @@ class UserRepository:
         result = await session.execute(select(User).where(User.email == email))
         return result.scalar_one_or_none()
 
+    async def get_by_name(self, session: AsyncSession, name: str) -> Optional[User]:
+        result = await session.execute(select(User).where(User.name == name))
+        return result.scalar_one_or_none()
+
     async def create(
         self,
         session: AsyncSession,
