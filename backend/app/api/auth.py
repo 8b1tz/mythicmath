@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,6 +14,13 @@ from app.services.session_service import create_session
 
 router = APIRouter()
 user_service = UserService()
+
+
+def _clean_str(value: Optional[str]) -> Optional[str]:
+    if value is None:
+        return None
+    cleaned = value.strip()
+    return cleaned or None
 
 
 @router.post("/register", response_model=UserRegisterResponse, status_code=status.HTTP_201_CREATED)
@@ -46,19 +55,17 @@ async def login_user(
     payload: UserLoginRequest,
     session: AsyncSession = Depends(get_session),
 ):
-    email = payload.email.strip().lower() if payload.email else None
-    name = payload.name.strip() if payload.name else None
-
-    if not email and not name:
+    identifier = _clean_str(payload.identifier)
+    if not identifier:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Email or name is required",
+            detail="Identifier is required",
         )
 
-    if email:
-        user = await user_service.get_user_by_email(session, email)
+    if "@" in identifier:
+        user = await user_service.get_user_by_email(session, identifier.lower())
     else:
-        user = await user_service.get_user_by_name(session, name)
+        user = await user_service.get_user_by_name(session, identifier)
 
     if not user or not user_service.verify_password(payload.password, user.password_hash):
         raise HTTPException(

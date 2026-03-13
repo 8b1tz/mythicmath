@@ -61,13 +61,13 @@ Response:
 ### Login
 `POST /login`
 
-Body (email OU name):
+Body (identifier = email OU username):
 ```json
-{ "email": "ana@email.com", "password": "123456" }
+{ "identifier": "ana@email.com", "password": "123456" }
 ```
 ou
 ```json
-{ "name": "Ana", "password": "123456" }
+{ "identifier": "Ana", "password": "123456" }
 ```
 
 Response:
