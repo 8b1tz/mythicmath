@@ -19,3 +19,11 @@ class UserRegisterResponse(BaseModel):
 class UserLoginRequest(BaseModel):
     identifier: str
     password: str
+
+
+class UserLogoutRequest(BaseModel):
+    token: str
+
+
+class UserLogoutResponse(BaseModel):
+    success: bool

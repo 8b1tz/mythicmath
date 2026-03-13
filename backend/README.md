@@ -75,6 +75,19 @@ Response:
 { "id": 1, "name": "Ana", "email": "ana@email.com", "token": "..." }
 ```
 
+### Logout
+`POST /logout`
+
+Body:
+```json
+{ "token": "..." }
+```
+
+Response:
+```json
+{ "success": true }
+```
+
 ---
 
 ## Observacao

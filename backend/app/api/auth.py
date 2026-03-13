@@ -6,11 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.engine.database import get_session
 from app.schemas.user import (
     UserLoginRequest,
+    UserLogoutRequest,
+    UserLogoutResponse,
     UserRegisterRequest,
     UserRegisterResponse,
 )
 from app.services.user_service import UserService
-from app.services.session_service import create_session
+from app.services.session_service import create_session, revoke_session
 
 router = APIRouter()
 user_service = UserService()
@@ -85,3 +87,9 @@ async def login_user(
         email=user.email,
         token=token,
     )
+
+
+@router.post("/logout", response_model=UserLogoutResponse)
+async def logout_user(payload: UserLogoutRequest):
+    await revoke_session(payload.token)
+    return UserLogoutResponse(success=True)
