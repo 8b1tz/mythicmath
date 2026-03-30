@@ -26,3 +26,7 @@ coverage.xml
 *.db
 *.sqlite
 *.sqlite3
+
+# uploaded files
+uploads/
+backend/uploads/

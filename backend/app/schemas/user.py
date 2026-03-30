@@ -31,3 +31,8 @@ class UserProfileResponse(BaseModel):
     xpCurrent: int
     xpToNextLevel: int
     level: int
+
+
+class UserAvatarResponse(BaseModel):
+    result: bool
+    image: Optional[str] = None
