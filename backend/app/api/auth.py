@@ -1,12 +1,18 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.engine.database import get_session
-from app.schemas.user import UserLoginRequest, UserRegisterRequest, UserRegisterResponse
+from app.schemas.user import (
+    UserLoginRequest,
+    UserLogoutRequest,
+    UserLogoutResponse,
+    UserRegisterRequest,
+    UserRegisterResponse,
+)
 from app.services.user_service import UserService
-from app.services.session_service import create_session
+from app.services.session_service import create_session, revoke_session
 
 router = APIRouter()
 user_service = UserService()
@@ -81,3 +87,26 @@ async def login_user(
         email=user.email,
         token=token,
     )
+
+
+@router.post("/logout", response_model=UserLogoutResponse)
+async def logout_user(
+    payload: Optional[UserLogoutRequest] = None,
+    authorization: Optional[str] = Header(None),
+):
+    token: Optional[str] = None
+
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization.split(" ", 1)[1].strip()
+
+    if not token and payload and payload.token:
+        token = _clean_str(payload.token)
+
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing token",
+        )
+
+    await revoke_session(token)
+    return UserLogoutResponse(success=True)

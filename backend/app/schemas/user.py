@@ -35,3 +35,11 @@ class UserProfileResponse(BaseModel):
 class UserAvatarResponse(BaseModel):
     result: bool
     image: Optional[str] = None
+
+
+class UserLogoutRequest(BaseModel):
+    token: Optional[str] = None
+
+
+class UserLogoutResponse(BaseModel):
+    success: bool
