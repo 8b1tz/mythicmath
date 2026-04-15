@@ -2,49 +2,18 @@ import mimetypes
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.dependencies import get_current_user
 from app.engine.database import get_session as get_db_session
 from app.schemas.user import UserAvatarResponse, UserProfileResponse
-from app.services.session_service import get_session as get_auth_session
-from app.services.user_service import UserService
 
 router = APIRouter()
-user_service = UserService()
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 AVATAR_DIR = BASE_DIR / "uploads" / "avatars"
 AVATAR_DIR.mkdir(parents=True, exist_ok=True)
-
-
-async def get_current_user(
-    authorization: str = Header(None),
-    db: AsyncSession = Depends(get_db_session),
-):
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing or invalid token",
-        )
-
-    token = authorization.split(" ", 1)[1].strip()
-    session_data = await get_auth_session(token)
-    if not session_data:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
-        )
-
-    user_id = session_data.get("user_id")
-    user = await user_service.get_user(db, user_id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-        )
-
-    return user
 
 
 def calculate_xp_to_next_level(level: int) -> int:

@@ -3,6 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.dependencies import get_current_user
 from app.engine.database import get_session as get_db_session
 from app.schemas.user import UserUpdateRequest, UserUpdateResponse
 from app.services.user_service import UserService
@@ -23,14 +24,16 @@ def _clean_str(value: Optional[str]) -> Optional[str]:
 async def update_user(
     id: int,
     payload: UserUpdateRequest,
+    current_user=Depends(get_current_user),
     session: AsyncSession = Depends(get_db_session),
 ):
-    user = await user_service.get_user(session, id)
-    if not user:
+    if current_user.id != id:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only update your own account",
         )
+
+    user = current_user
 
     password = _clean_str(payload.password)
     if payload.password is not None and password is None:
@@ -65,6 +68,19 @@ async def update_user(
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Email or password is required",
+        )
+
+    current_password = _clean_str(payload.current_password)
+    if current_password is None:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Current password is required",
+        )
+
+    if not user_service.verify_password(current_password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Current password is incorrect",
         )
 
     updated = await user_service.update_user(
