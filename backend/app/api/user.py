@@ -18,8 +18,8 @@ def _clean_str(value: Optional[str]) -> Optional[str]:
     return cleaned or None
 
 
-@router.patch("/edit-user/{id}", response_model=UserUpdateResponse)
-async def edit_user(
+@router.patch("/users/{id}", response_model=UserUpdateResponse)
+async def update_user(
     id: int,
     payload: UserUpdateRequest,
     session: AsyncSession = Depends(get_db_session),
