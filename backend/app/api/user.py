@@ -32,11 +32,11 @@ async def update_user(
             detail="User not found",
         )
 
-    password = _clean_str(payload.senha)
-    if payload.senha is not None and password is None:
+    password = _clean_str(payload.password)
+    if payload.password is not None and password is None:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Senha is required",
+            detail="Password is required",
         )
 
     email = _clean_str(payload.email)
@@ -64,7 +64,7 @@ async def update_user(
     if email is None and password is None:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Email or senha is required",
+            detail="Email or password is required",
         )
 
     updated = await user_service.update_user(

@@ -48,7 +48,7 @@ class UserLogoutResponse(BaseModel):
 
 class UserUpdateRequest(BaseModel):
     email: Optional[str] = None
-    senha: Optional[str] = None
+    password: Optional[str] = None
 
 
 class UserUpdateResponse(BaseModel):
