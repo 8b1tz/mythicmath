@@ -20,7 +20,7 @@ async def seed() -> None:
 
         session.add(
             User(
-                name="Seed User",
+                username="Seed User",
                 email="seed@local",
                 password_hash=hash_password("seed123"),
                 photo_url=None,

@@ -1,17 +1,18 @@
+from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel
 
 
 class UserRegisterRequest(BaseModel):
-    name: str
+    username: str
     email: str
     password: str
 
 
 class UserRegisterResponse(BaseModel):
     id: int
-    name: str
+    username: str
     email: str
     token: str
 
@@ -23,7 +24,8 @@ class UserLoginRequest(BaseModel):
 
 class UserProfileResponse(BaseModel):
     userId: int
-    name: str
+    username: str
+    email: str
     image: Optional[str] = None
     day_learning_streak: int
     ranked_victories: int
@@ -43,3 +45,20 @@ class UserLogoutRequest(BaseModel):
 
 class UserLogoutResponse(BaseModel):
     success: bool
+
+
+class UserUpdateRequest(BaseModel):
+    current_password: str
+    email: Optional[str] = None
+    password: Optional[str] = None
+
+
+class UserUpdateResponse(BaseModel):
+    id: int
+    username: str
+    email: str
+    xp: int
+    level: int
+    total_score: int
+    ranked_wins: int
+    created_at: Optional[datetime] = None

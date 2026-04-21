@@ -11,7 +11,8 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    name: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    # Keep the existing database column name for compatibility with current data.
+    username: Mapped[str] = mapped_column("name", String(255), nullable=False, unique=True)
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     photo_url: Mapped[Optional[str]] = mapped_column(String(2048), nullable=True)

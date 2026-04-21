@@ -50,12 +50,12 @@ Pronto. A API fica em `http://127.0.0.1:8000`.
 
 Body:
 ```json
-{ "name": "Ana", "email": "ana@email.com", "password": "123456" }
+{ "username": "Ana", "email": "ana@email.com", "password": "123456" }
 ```
 
 Response:
 ```json
-{ "id": 1, "name": "Ana", "email": "ana@email.com", "token": "..." }
+{ "id": 1, "username": "Ana", "email": "ana@email.com", "token": "..." }
 ```
 
 ### Login
@@ -72,7 +72,7 @@ ou
 
 Response:
 ```json
-{ "id": 1, "name": "Ana", "email": "ana@email.com", "token": "..." }
+{ "id": 1, "username": "Ana", "email": "ana@email.com", "token": "..." }
 ```
 
 ### Logout
