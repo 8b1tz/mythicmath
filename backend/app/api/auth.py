@@ -1,10 +1,11 @@
 import re
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.engine.database import get_session
+from app.errors import conflict, internal_server_error, unauthorized, unprocessable_entity
 from app.schemas.user import (
     UserLoginRequest,
     UserLogoutRequest,
@@ -61,32 +62,38 @@ async def register_user(
 ):
     username = _clean_str(payload.username)
     if not username:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        raise unprocessable_entity(
+            code="USERNAME_REQUIRED",
             detail="Username is required",
         )
 
     email = _clean_str(payload.email)
     if not email:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        raise unprocessable_entity(
+            code="EMAIL_REQUIRED",
             detail="Email is required",
         )
 
     if not is_valid_email(email):
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        raise unprocessable_entity(
+            code="INVALID_EMAIL_FORMAT",
             detail="Invalid email format",
         )
 
     email = email.lower()
     existing = await user_service.get_user_by_email(session, email)
     if existing:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
+        raise conflict(
+            code="EMAIL_ALREADY_REGISTERED",
+            detail="Email already registered",
+        )
 
     existing_username = await user_service.get_user_by_username(session, username)
     if existing_username:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Username already registered")
+        raise conflict(
+            code="USERNAME_ALREADY_REGISTERED",
+            detail="Username already registered",
+        )
 
     user = await user_service.create_user(
         session=session,
@@ -112,8 +119,8 @@ async def login_user(
 ):
     identifier = _clean_str(payload.identifier)
     if not identifier:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        raise unprocessable_entity(
+            code="IDENTIFIER_REQUIRED",
             detail="Identifier is required",
         )
 
@@ -123,8 +130,8 @@ async def login_user(
         user = await user_service.get_user_by_username(session, identifier)
 
     if not user or not user_service.verify_password(payload.password, user.password_hash):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+        raise unauthorized(
+            code="INVALID_CREDENTIALS",
             detail="Invalid credentials",
         )
 
@@ -144,21 +151,21 @@ async def login_google_user(
 ):
     google_token = _clean_str(payload.id_token) or _clean_str(payload.credential)
     if not google_token:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        raise unprocessable_entity(
+            code="GOOGLE_ID_TOKEN_REQUIRED",
             detail="Google ID token is required",
         )
 
     try:
         google_identity = await verify_google_id_token(google_token)
     except GoogleAuthConfigError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        raise internal_server_error(
+            code="GOOGLE_AUTH_CONFIG_ERROR",
             detail=str(exc),
         ) from exc
     except GoogleAuthError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+        raise unauthorized(
+            code="GOOGLE_AUTH_FAILED",
             detail=str(exc),
         ) from exc
 
@@ -168,8 +175,8 @@ async def login_google_user(
 
     if user:
         if user.google_sub and user.google_sub != google_identity.subject:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
+            raise conflict(
+                code="EMAIL_ALREADY_LINKED_TO_ANOTHER_GOOGLE_ACCOUNT",
                 detail="Email is already linked to another Google account",
             )
         if not user.google_sub:
@@ -212,8 +219,8 @@ async def logout_user(
         token = _clean_str(payload.token)
 
     if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+        raise unauthorized(
+            code="AUTH_TOKEN_REQUIRED",
             detail="Missing token",
         )
 

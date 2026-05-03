@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.api.router import api_router
 from app.engine.redis import close_redis
+from app.errors import register_exception_handlers
 
 
 @asynccontextmanager
@@ -40,4 +41,5 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+register_exception_handlers(app)
 app.include_router(api_router)
