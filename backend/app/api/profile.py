@@ -2,11 +2,12 @@ import mimetypes
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_current_user
 from app.engine.database import get_session as get_db_session
+from app.errors import bad_request
 from app.schemas.user import UserAvatarResponse, UserProfileResponse
 
 router = APIRouter()
@@ -44,8 +45,8 @@ async def update_avatar(
     db: AsyncSession = Depends(get_db_session),
 ):
     if not image.content_type or not image.content_type.startswith("image/"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+        raise bad_request(
+            code="INVALID_IMAGE_TYPE",
             detail="Invalid image type",
         )
 
