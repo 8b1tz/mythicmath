@@ -44,6 +44,10 @@ class UserAvatarResponse(BaseModel):
     image: Optional[str] = None
 
 
+class UserAvatarPresetRequest(BaseModel):
+    avatar_id: str
+
+
 class UserLogoutRequest(BaseModel):
     token: Optional[str] = None
 

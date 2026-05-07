@@ -8,7 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies import get_current_user
 from app.engine.database import get_session as get_db_session
 from app.errors import bad_request
-from app.schemas.user import UserAvatarResponse, UserProfileResponse
+from app.schemas.user import (
+    UserAvatarPresetRequest,
+    UserAvatarResponse,
+    UserProfileResponse,
+)
+from app.services.avatar_presets import build_avatar_preset_value, is_valid_avatar_preset
 
 router = APIRouter()
 
@@ -66,3 +71,24 @@ async def update_avatar(
     await db.refresh(current_user)
 
     return UserAvatarResponse(result=True, image=image_url)
+
+
+@router.put("/avatar/preset", response_model=UserAvatarResponse)
+async def update_avatar_preset(
+    payload: UserAvatarPresetRequest,
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+):
+    avatar_id = payload.avatar_id.strip()
+    if not avatar_id or not is_valid_avatar_preset(avatar_id):
+        raise bad_request(
+            code="INVALID_AVATAR_PRESET",
+            detail="Invalid avatar preset",
+        )
+
+    image_value = build_avatar_preset_value(avatar_id)
+    current_user.photo_url = image_value
+    await db.commit()
+    await db.refresh(current_user)
+
+    return UserAvatarResponse(result=True, image=image_value)
