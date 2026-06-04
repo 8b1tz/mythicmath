@@ -2,6 +2,7 @@ from fastapi import Depends, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.engine.database import get_session as get_db_session
+from app.error_codes import ErrorCode
 from app.errors import unauthorized
 from app.services.session_service import get_session as get_auth_session
 from app.services.user_service import UserService
@@ -15,7 +16,7 @@ async def get_current_user(
 ):
     if not authorization or not authorization.startswith("Bearer "):
         raise unauthorized(
-            code="AUTH_HEADER_INVALID",
+            code=ErrorCode.AUTH_HEADER_INVALID,
             detail="Missing or invalid token",
         )
 
@@ -23,7 +24,7 @@ async def get_current_user(
     session_data = await get_auth_session(token)
     if not session_data:
         raise unauthorized(
-            code="AUTH_TOKEN_INVALID",
+            code=ErrorCode.AUTH_TOKEN_INVALID,
             detail="Invalid token",
         )
 
@@ -31,7 +32,7 @@ async def get_current_user(
     user = await user_service.get_user(db, user_id)
     if not user:
         raise unauthorized(
-            code="AUTH_USER_NOT_FOUND",
+            code=ErrorCode.AUTH_USER_NOT_FOUND,
             detail="User not found",
         )
 

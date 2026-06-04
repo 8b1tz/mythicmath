@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Header, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.engine.database import get_session
+from app.error_codes import ErrorCode
 from app.errors import conflict, internal_server_error, unauthorized, unprocessable_entity
 from app.schemas.user import (
     UserLoginRequest,
@@ -63,20 +64,20 @@ async def register_user(
     username = _clean_str(payload.username)
     if not username:
         raise unprocessable_entity(
-            code="USERNAME_REQUIRED",
+            code=ErrorCode.USERNAME_REQUIRED,
             detail="Username is required",
         )
 
     email = _clean_str(payload.email)
     if not email:
         raise unprocessable_entity(
-            code="EMAIL_REQUIRED",
+            code=ErrorCode.EMAIL_REQUIRED,
             detail="Email is required",
         )
 
     if not is_valid_email(email):
         raise unprocessable_entity(
-            code="INVALID_EMAIL_FORMAT",
+            code=ErrorCode.INVALID_EMAIL_FORMAT,
             detail="Invalid email format",
         )
 
@@ -84,14 +85,14 @@ async def register_user(
     existing = await user_service.get_user_by_email(session, email)
     if existing:
         raise conflict(
-            code="EMAIL_ALREADY_REGISTERED",
+            code=ErrorCode.EMAIL_ALREADY_REGISTERED,
             detail="Email already registered",
         )
 
     existing_username = await user_service.get_user_by_username(session, username)
     if existing_username:
         raise conflict(
-            code="USERNAME_ALREADY_REGISTERED",
+            code=ErrorCode.USERNAME_ALREADY_REGISTERED,
             detail="Username already registered",
         )
 
@@ -120,7 +121,7 @@ async def login_user(
     identifier = _clean_str(payload.identifier)
     if not identifier:
         raise unprocessable_entity(
-            code="IDENTIFIER_REQUIRED",
+            code=ErrorCode.IDENTIFIER_REQUIRED,
             detail="Identifier is required",
         )
 
@@ -131,7 +132,7 @@ async def login_user(
 
     if not user or not user_service.verify_password(payload.password, user.password_hash):
         raise unauthorized(
-            code="INVALID_CREDENTIALS",
+            code=ErrorCode.INVALID_CREDENTIALS,
             detail="Invalid credentials",
         )
 
@@ -152,7 +153,7 @@ async def login_google_user(
     google_token = _clean_str(payload.id_token) or _clean_str(payload.credential)
     if not google_token:
         raise unprocessable_entity(
-            code="GOOGLE_ID_TOKEN_REQUIRED",
+            code=ErrorCode.GOOGLE_ID_TOKEN_REQUIRED,
             detail="Google ID token is required",
         )
 
@@ -160,12 +161,12 @@ async def login_google_user(
         google_identity = await verify_google_id_token(google_token)
     except GoogleAuthConfigError as exc:
         raise internal_server_error(
-            code="GOOGLE_AUTH_CONFIG_ERROR",
+            code=ErrorCode.GOOGLE_AUTH_CONFIG_ERROR,
             detail=str(exc),
         ) from exc
     except GoogleAuthError as exc:
         raise unauthorized(
-            code="GOOGLE_AUTH_FAILED",
+            code=ErrorCode.GOOGLE_AUTH_FAILED,
             detail=str(exc),
         ) from exc
 
@@ -176,7 +177,7 @@ async def login_google_user(
     if user:
         if user.google_sub and user.google_sub != google_identity.subject:
             raise conflict(
-                code="EMAIL_ALREADY_LINKED_TO_ANOTHER_GOOGLE_ACCOUNT",
+                code=ErrorCode.EMAIL_ALREADY_LINKED_TO_ANOTHER_GOOGLE_ACCOUNT,
                 detail="Email is already linked to another Google account",
             )
         if not user.google_sub:
@@ -220,7 +221,7 @@ async def logout_user(
 
     if not token:
         raise unauthorized(
-            code="AUTH_TOKEN_REQUIRED",
+            code=ErrorCode.AUTH_TOKEN_REQUIRED,
             detail="Missing token",
         )
 

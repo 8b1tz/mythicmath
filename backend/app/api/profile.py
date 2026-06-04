@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_current_user
 from app.engine.database import get_session as get_db_session
+from app.error_codes import ErrorCode
 from app.errors import bad_request
 from app.schemas.user import (
     UserAvatarPresetRequest,
@@ -51,7 +52,7 @@ async def update_avatar(
 ):
     if not image.content_type or not image.content_type.startswith("image/"):
         raise bad_request(
-            code="INVALID_IMAGE_TYPE",
+            code=ErrorCode.INVALID_IMAGE_TYPE,
             detail="Invalid image type",
         )
 
@@ -82,7 +83,7 @@ async def update_avatar_preset(
     avatar_id = payload.avatar_id.strip()
     if not avatar_id or not is_valid_avatar_preset(avatar_id):
         raise bad_request(
-            code="INVALID_AVATAR_PRESET",
+            code=ErrorCode.INVALID_AVATAR_PRESET,
             detail="Invalid avatar preset",
         )
 

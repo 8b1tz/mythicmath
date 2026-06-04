@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_current_user
 from app.engine.database import get_session as get_db_session
+from app.error_codes import ErrorCode
 from app.errors import conflict, forbidden, unprocessable_entity
 from app.schemas.user import UserUpdateRequest, UserUpdateResponse
 from app.services.user_service import UserService
@@ -30,7 +31,7 @@ async def update_user(
 ):
     if current_user.id != id:
         raise forbidden(
-            code="ACCOUNT_UPDATE_FORBIDDEN",
+            code=ErrorCode.ACCOUNT_UPDATE_FORBIDDEN,
             detail="You can only update your own account",
         )
 
@@ -39,21 +40,21 @@ async def update_user(
     password = _clean_str(payload.password)
     if payload.password is not None and password is None:
         raise unprocessable_entity(
-            code="PASSWORD_REQUIRED",
+            code=ErrorCode.PASSWORD_REQUIRED,
             detail="Password is required",
         )
 
     email = _clean_str(payload.email)
     if payload.email is not None and email is None:
         raise unprocessable_entity(
-            code="EMAIL_REQUIRED",
+            code=ErrorCode.EMAIL_REQUIRED,
             detail="Email is required",
         )
 
     if email is not None:
         if not is_valid_email(email):
             raise unprocessable_entity(
-                code="INVALID_EMAIL_FORMAT",
+                code=ErrorCode.INVALID_EMAIL_FORMAT,
                 detail="Invalid email format",
             )
 
@@ -61,26 +62,26 @@ async def update_user(
         existing = await user_service.get_user_by_email(session, email)
         if existing and existing.id != id:
             raise conflict(
-                code="EMAIL_ALREADY_REGISTERED",
+                code=ErrorCode.EMAIL_ALREADY_REGISTERED,
                 detail="Email already registered",
             )
 
     if email is None and password is None:
         raise unprocessable_entity(
-            code="EMAIL_OR_PASSWORD_REQUIRED",
+            code=ErrorCode.EMAIL_OR_PASSWORD_REQUIRED,
             detail="Email or password is required",
         )
 
     current_password = _clean_str(payload.current_password)
     if current_password is None:
         raise unprocessable_entity(
-            code="CURRENT_PASSWORD_REQUIRED",
+            code=ErrorCode.CURRENT_PASSWORD_REQUIRED,
             detail="Current password is required",
         )
 
     if not user_service.verify_password(current_password, user.password_hash):
         raise unprocessable_entity(
-            code="CURRENT_PASSWORD_INCORRECT",
+            code=ErrorCode.CURRENT_PASSWORD_INCORRECT,
             detail="Current password is incorrect",
         )
 
