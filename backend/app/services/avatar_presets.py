@@ -1,11 +1,15 @@
 APP_AVATAR_PREFIX = "app-avatar:"
 
 AVATAR_PRESET_IDS = {
-    "arcane_wizard",
-    "elven_archer",
-    "crystal_knight",
-    "radiant_guardian",
-    "shadow_rogue",
+    "angelic_paladin",
+    "dragon",
+    "dwarf",
+    "elf",
+    "mage",
+    "mermaid",
+    "necromancer",
+    "phoenix",
+    "vampire",
 }
 
 
